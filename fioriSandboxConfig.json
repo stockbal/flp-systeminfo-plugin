@@ -1,0 +1,9 @@
+{
+	"applications": {},
+	"bootstrapPlugins": {
+		"fiori-logoninfo-plugin": {
+			"component": "flp.plugins.logoninfo",
+			"url": "../../../../../"
+		}
+	}
+}

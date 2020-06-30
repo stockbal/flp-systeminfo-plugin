@@ -1,0 +1,69 @@
+specVersion: "1.0"
+metadata:
+    name: fiori-logon-plugin
+type: application
+resources:
+    configuration:
+        propertiesFileSourceEncoding: UTF-8
+builder:
+    resources:
+        excludes:
+            - "/test/**"
+            - "/localService/**"
+            - "**/.eslintrc"
+    customTasks:
+        - name: webide-extension-task-updateNeoApp
+          afterTask: generateVersionInfo
+          configuration:
+              destDir: dist
+              appFolder: webapp
+              nameSpace: group/msg/dairy/abc
+        - name: webide-extension-task-updateManifestJson
+          afterTask: webide-extension-task-updateNeoApp
+          configuration:
+              appFolder: webapp
+              destDir: dist
+        - name: webide-extension-task-lint
+          afterTask: webide-extension-task-updateManifestJson
+          configuration:
+              destDir: dist
+              appFolder: webapp
+              nameSpace: group/msg/dairy/abc
+        - name: webide-extension-task-resources
+          afterTask: webide-extension-task-lint
+          configuration:
+              nameSpace: group/msg/dairy/abc
+        - name: ui5-task-transpile
+          afterTask: replaceVersion
+          configuration:
+              debug: false
+              excludePatterns:
+                  - "lib/"
+                  - "css/"
+server:
+    customMiddleware:
+        - name: ui5-middleware-servestatic
+          afterMiddleware: compression
+          mountPath: /resources
+          configuration:
+              rootPath: ${env.SAPUI5_RESOURCES}
+        - name: ui5-middleware-servestatic
+          afterMiddleware: compression
+          mountPath: /test-resources
+          configuration:
+              rootPath: ${env.SAPUI5_TEST_RESOURCES}
+        # proxy to backend service
+        - name: ui5-middleware-http-proxy
+          mountPath: /sap/bc
+          beforeMiddleware: compression
+          configuration:
+              baseUrl: https://vhostdt3.awscloud.msg.de:8443
+              path: /sap/bc
+              secure: false
+        - name: ui5-middleware-livereload
+          afterMiddleware: compression
+          configuration:
+              debug: true
+              ext: "xml,json,properties"
+              port: 35729
+              path: "webapp"

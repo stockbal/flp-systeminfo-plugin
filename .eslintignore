@@ -6,3 +6,4 @@ reports/
 changes_preview.js
 .vscode/
 .idea/
+deploy.js

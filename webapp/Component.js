@@ -3,14 +3,45 @@ sap.ui.define(
         "jquery.sap.global",
         "sap/ui/core/Component",
         "sap/m/Dialog",
-        "sap/m/Label",
         "sap/m/Input",
-        "sap/m/ComboBox",
         "sap/m/Button",
-        "sap/m/ActionSheet"
+        "sap/m/ActionSheet",
+        "sap/base/Log"
     ],
-    (jQuery, Component, Dialog, Label, Input, ComboBox, Button, ActionSheet) => {
+    (jQuery, Component, Dialog, Input, Button, ActionSheet, Log) => {
         "use strict";
+
+        const ADT_CLIENT_SERVICE_URL = "/sap/bc/adt/system/clients";
+        /**
+         * Extract ABAP System clients from xml document into
+         * array
+         * @param {XMLDocument} xmlDoc xml document with clients
+         * @returns {Array} array of client info objects
+         */
+        const getClientsFromXmlReponse = xmlDoc => {
+            if (!xmlDoc || !xmlDoc.querySelectorAll) {
+                return null;
+            }
+
+            const oClientList = xmlDoc.querySelectorAll("entry");
+            if (!oClientList) {
+                return null;
+            }
+            const aClients = [];
+            if (oClientList && oClientList.forEach) {
+                oClientList.forEach(oClientEntry => {
+                    const sClientId = oClientEntry.querySelector("id").innerHTML;
+                    if (sClientId === "000") {
+                        return;
+                    }
+                    aClients.push({
+                        client: sClientId,
+                        description: oClientEntry.querySelector("title").innerHTML
+                    });
+                });
+            }
+            return aClients;
+        };
 
         return Component.extend("flp.plugins.logoninfo.Component", {
             metadata: {
@@ -29,13 +60,14 @@ sap.ui.define(
 
                     // set header title to <System, Client, Username>
                     jQuery.get({
-                        url: "/sap/bc/zflpplugins/clients",
-                        success: aClients => {
+                        url: ADT_CLIENT_SERVICE_URL,
+                        success: oResponse => {
                             this._bSystemHasClientService = true;
-                            this._aClients = aClients || [];
+                            this._aClients = getClientsFromXmlReponse(oResponse) || [];
                             this._addHeaderItems(oRenderer);
                         },
                         error: aError => {
+                            Log.error(`Service '${ADT_CLIENT_SERVICE_URL}' is not reachable`);
                             this._bSystemHasClientService = false;
                             this._addHeaderItems(oRenderer);
                         }
@@ -108,13 +140,16 @@ sap.ui.define(
             _switchClientByActionSheet(oEvent) {
                 const oButton = oEvent.getSource();
                 const aButtons = [];
+
                 this._aClients.forEach(oClient => {
+                    const sClient = this._oShellContainer.getLogonSystem().getClient();
                     aButtons.push(
                         new Button({
                             text: oClient.client + (oClient.description ? ` - ${oClient.description}` : ""),
                             press: () => {
                                 window.location.search = "sap-client=" + oClient.client;
-                            }
+                            },
+                            icon: sClient === oClient.client ? "sap-icon://arrow-right" : ""
                         })
                     );
                 });
@@ -156,7 +191,7 @@ sap.ui.define(
                     beginButton: new Button({
                         text: this._oBundle.getText("submit"),
                         enabled: false,
-                        type: "Emphasized",
+                        type: sap.m.ButtonType.Emphasized,
                         press: function () {
                             sClient = sap.ui.getCore().byId("clientInput").getValue();
                             oDialog.close();

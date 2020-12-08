@@ -1,6 +1,6 @@
 specVersion: "1.0"
 metadata:
-    name: fiori-logon-plugin
+    name: logoninfo
 type: application
 resources:
     configuration:
@@ -12,27 +12,6 @@ builder:
             - "/localService/**"
             - "**/.eslintrc"
     customTasks:
-        - name: webide-extension-task-updateNeoApp
-          afterTask: generateVersionInfo
-          configuration:
-              destDir: dist
-              appFolder: webapp
-              nameSpace: group/msg/dairy/abc
-        - name: webide-extension-task-updateManifestJson
-          afterTask: webide-extension-task-updateNeoApp
-          configuration:
-              appFolder: webapp
-              destDir: dist
-        - name: webide-extension-task-lint
-          afterTask: webide-extension-task-updateManifestJson
-          configuration:
-              destDir: dist
-              appFolder: webapp
-              nameSpace: group/msg/dairy/abc
-        - name: webide-extension-task-resources
-          afterTask: webide-extension-task-lint
-          configuration:
-              nameSpace: group/msg/dairy/abc
         - name: ui5-task-transpile
           afterTask: replaceVersion
           configuration:
@@ -53,13 +32,14 @@ server:
           configuration:
               rootPath: ${env.SAPUI5_TEST_RESOURCES}
         # proxy to backend service
-        - name: ui5-middleware-http-proxy
-          mountPath: /sap/bc
-          beforeMiddleware: compression
+        - name: ui5-middleware-route-proxy
+          afterMiddleware: compression
           configuration:
-              baseUrl: https://vhostdt3.awscloud.msg.de:8443
-              path: /sap/bc
-              secure: false
+              /sap/bc:
+                  target: PROXY_TARGET
+                  auth:
+                      user: PROXY_AUTH_USER
+                      pass: PROXY_AUTH_PASS
         - name: ui5-middleware-livereload
           afterMiddleware: compression
           configuration:

@@ -1,5 +1,5 @@
 {
-    "name": "fiori-logon-plugin",
+    "name": "flp-systeminfo-plugin",
     "version": "0.0.1",
     "description": "Fiori Launchpad Plugin to display Logon information and change client/language",
     "private": true,
@@ -21,7 +21,8 @@
         "ui5-middleware-servestatic": "^0.3.3",
         "ui5-task-transpile": "^0.2.3",
         "grunt-nwabap-ui5uploader": "^1.0.7",
-        "npm-check-updates": "^10.2.3"
+        "npm-check-updates": "^10.2.3",
+        "@openui5/ts-types": "^1.60.5"
     },
     "ui5": {
         "dependencies": [

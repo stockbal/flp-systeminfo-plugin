@@ -1,13 +1,13 @@
 {
     "name": "flp-systeminfo-plugin",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Fiori Launchpad Plugin to display Logon information and change client/language",
     "private": true,
     "scripts": {
         "upgrade-packages": "ncu -u",
         "lint": "eslint webapp",
         "build": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --exclude-task=ui5-task-nwabap-deployer --clean-dest",
-        "dev": "ui5 serve --port 1081 --open \"test/flpSandbox.html?sap-language=EN&sap-client=300#Shell-home\"",
+        "dev": "ui5 serve --port 1081 --open \"test/flpSandbox.html?sap-language=EN#Shell-home\"",
         "deploy": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --clean-dest"
     },
     "devDependencies": {

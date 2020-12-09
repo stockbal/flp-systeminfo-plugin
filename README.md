@@ -34,12 +34,6 @@ $ npm run dev
 ```
 
 ## Deployment to ABAP System
-As this plugin will be deployed in Z-namespace the initial deployment has to be done via ABAP Report `/UI5/REPOSITORY_LOAD`. For this you only have to build the final plugin via:
-```
-$ npm run build
-```
-Afterwards you can upload the `dist`-folder via the aformentioned report.  
-Consecutive deployments can be done via:
 ```
 $ npm run deploy
 ```

@@ -77,7 +77,6 @@ sap.ui.define(
 
             _addHeaderItems(oRenderer) {
                 // Add button to switch system client
-                // if ((this._bSystemHasClientService && this._aClients.length > 1) || !this._bSystemHasClientService) {
                 oRenderer.addHeaderEndItem(
                     "sap.m.Button",
                     {
@@ -92,7 +91,6 @@ sap.ui.define(
                     true,
                     false
                 );
-                // }
                 //Add custom language button to the header
                 oRenderer.addHeaderEndItem(
                     "sap.m.Button",

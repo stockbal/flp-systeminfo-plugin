@@ -77,22 +77,22 @@ sap.ui.define(
 
             _addHeaderItems(oRenderer) {
                 // Add button to switch system client
-                if ((this._bSystemHasClientService && this._aClients.length > 1) || !this._bSystemHasClientService) {
-                    oRenderer.addHeaderEndItem(
-                        "sap.m.Button",
-                        {
-                            id: "clientSwitcher",
-                            tooltip: this._oBundle.getText("clientSwitchButton"),
-                            icon: "sap-icon://it-system",
-                            type: "Transparent",
-                            press: !this._bSystemHasClientService
-                                ? this._switchClient.bind(this)
-                                : this._switchClientByActionSheet.bind(this)
-                        },
-                        true,
-                        false
-                    );
-                }
+                // if ((this._bSystemHasClientService && this._aClients.length > 1) || !this._bSystemHasClientService) {
+                oRenderer.addHeaderEndItem(
+                    "sap.m.Button",
+                    {
+                        id: "clientSwitcher",
+                        tooltip: this._oBundle.getText("clientSwitchButton"),
+                        icon: "sap-icon://it-system",
+                        type: "Transparent",
+                        press: !this._bSystemHasClientService
+                            ? this._switchClient.bind(this)
+                            : this._switchClientByActionSheet.bind(this)
+                    },
+                    true,
+                    false
+                );
+                // }
                 //Add custom language button to the header
                 oRenderer.addHeaderEndItem(
                     "sap.m.Button",
@@ -149,7 +149,8 @@ sap.ui.define(
                             press: () => {
                                 window.location.search = "sap-client=" + oClient.client;
                             },
-                            icon: sClient === oClient.client ? "sap-icon://arrow-right" : ""
+                            enabled: this._aClients.length > 1,
+                            tooltip: oClient.client === sClient ? this._oBundle.getText("clientAlreadySelected") : ""
                         })
                     );
                 });

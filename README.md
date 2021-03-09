@@ -3,6 +3,8 @@ Fiori Launchpad Plugin for
 - displaying ABAP system info
 - changing language from(to) German to(from) English
 - changing the client
+  - via Dropdown of all available clients in the system (works only if the SICF service /sap/bc/adt is active)
+  - or via direkt input via Popup input dialog (if above service is not active)
 
 ## Setup
 1) Install all node dependencies

@@ -9,8 +9,6 @@ sap.ui.define(
         "sap/base/Log"
     ],
     (jQuery, Component, Dialog, Input, Button, ActionSheet, Log) => {
-        "use strict";
-
         const ADT_CLIENT_SERVICE_URL = "/sap/bc/adt/system/clients";
         /**
          * Extract ABAP System clients from xml document into
@@ -51,28 +49,55 @@ sap.ui.define(
             /**
              * Initializes the plugin
              */
-            init: function () {
+            async init() {
                 const oRendererPromise = this._getRenderer();
                 this._oBundle = this.getModel("i18n").getResourceBundle();
 
-                oRendererPromise.then(oRenderer => {
-                    this._setHeaderTitle(oRenderer);
+                const oRenderer = await oRendererPromise;
+                this._setHeaderTitle(oRenderer);
 
-                    // set header title to <System, Client, Username>
-                    jQuery.get({
-                        url: ADT_CLIENT_SERVICE_URL,
-                        success: oResponse => {
-                            this._bSystemHasClientService = true;
-                            this._aClients = getClientsFromXmlReponse(oResponse) || [];
-                            this._addHeaderItems(oRenderer);
-                        },
-                        error: aError => {
-                            Log.error(`Service '${ADT_CLIENT_SERVICE_URL}' is not reachable`);
-                            this._bSystemHasClientService = false;
-                            this._addHeaderItems(oRenderer);
-                        }
-                    });
+                let sToken = "";
+
+                try {
+                    const oClientGetResponse = await this._sendRequest(ADT_CLIENT_SERVICE_URL);
+                    this._bSystemHasClientService = true;
+                    this._aClients = getClientsFromXmlReponse(oClientGetResponse.data) || [];
+                    this._addHeaderItems(oRenderer);
+                } catch (oError) {
+                    Log.error(`Service '${ADT_CLIENT_SERVICE_URL}' is not reachable`);
+                    this._bSystemHasClientService = false;
+                    this._addHeaderItems(oRenderer);
+                }
+
+                const oFetch = await this._sendRequest("/sap/bc/adt/discovery", {
+                    headers: {
+                        "X-CSRF-Token": "Fetch",
+                        accept: "*/*"
+                    }
                 });
+                sToken = oFetch.request.getResponseHeader("X-CSRF-Token");
+
+                const oQueryResult = await this._sendRequest(
+                    "/sap/bc/adt/datapreview/freestyle?rowNumber=100&dataAging=true",
+                    {
+                        headers: {
+                            "X-CSRF-Token": sToken,
+                            Accept: "application/xml, application/vnd.sap.adt.datapreview.table.v1+xml"
+                        },
+                        method: "POST",
+                        data:
+                            "SELECT langu~laiso, \n" +
+                            "       langu_text~sptxt \n" +
+                            "  FROM t002c AS installed_langu \n" +
+                            "    INNER JOIN t002 AS langu \n" +
+                            "      ON installed_langu~spras = langu~spras \n" +
+                            "    LEFT OUTER JOIN t002t AS langu_text \n" +
+                            "      ON  langu~spras = langu_text~sprsl \n" +
+                            "      AND langu_text~spras = langu~spras \n" +
+                            "  ORDER BY langu~laiso"
+                    }
+                );
+                console.log(oQueryResult.data);
             },
 
             _addHeaderItems(oRenderer) {
@@ -280,6 +305,33 @@ sap.ui.define(
                     }
                 }
                 return oDeferred.promise();
+            },
+
+            /**
+             * Returns promsie to jQuery AJAX request
+             * @param {string} sUrl request url
+             * @param {Map} mSettings map of settings
+             * @param {Object} mSettings.headers optional http headers
+             * @param {string} mSettings.method request method (e.g. GET/POST/PUT)
+             * @returns {Promise<Object>} promise to ajax request
+             */
+            _sendRequest(sUrl, { headers = {}, method = "GET", data = undefined, username = "", password = "" } = {}) {
+                return new Promise((fnResolve, fnReject) => {
+                    jQuery.ajax({
+                        url: sUrl,
+                        headers: headers,
+                        method: method,
+                        username,
+                        password,
+                        data: data,
+                        success: (oData, sStatus, oXhr) => {
+                            fnResolve({ data: oData, status: sStatus, request: oXhr });
+                        },
+                        error: (oXhr, sStatus, sError) => {
+                            fnReject({ status: sStatus, error: sError });
+                        }
+                    });
+                });
             }
         });
     }

@@ -1,3 +1,7 @@
+# dev folder is main source folder, so the webapp/src folder are to be ignored
+webapp/
+src/
+
 # Logs
 logs
 *.log

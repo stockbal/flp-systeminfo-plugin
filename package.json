@@ -4,29 +4,47 @@
   "description": "Fiori Launchpad Plugin to display Logon information and change client/language",
   "private": true,
   "scripts": {
-    "upgrade-packages": "ncu -u",
     "lint": "eslint webapp",
-    "build": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --exclude-task=ui5-task-nwabap-deployer --clean-dest",
+    "build:js": "babel dev --out-dir webapp  --source-maps true --extensions \".js\" --copy-files",
+    "watch:js": "babel dev --out-dir webapp --source-maps inline --extensions \".js\" --copy-files --watch",
+    "deploy:ui5": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --clean-dest",
+    "build:ui5": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --exclude-task=ui5-task-nwabap-deployer --clean-dest",
+    "start:ui5": "ui5 serve --port 1081 --open \"test/flpSandbox.html?sap-language=EN#Shell-home\"",
+    "copy:regenerator": "copyfiles node_modules/regenerator-runtime/runtime.js webapp/regenerator-runtime/ -f",
     "dev": "ui5 serve --port 1081 --open \"test/flpSandbox.html?sap-language=EN#Shell-home\"",
-    "deploy": "ui5 build --include-task=generateManifestBundle generateCachebusterInfo --clean-dest"
+    "build": "npm-run-all clean build:js copy:regenerator build:ui5",
+    "clean": "rimraf webapp dist",
+    "deploy": "npm-run-all clean build:js copy:regenerator deploy:ui5",
+    "start": "npm-run-all clean build:js copy:regenerator --parallel watch:js start:ui5"
   },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "ie 11"
+  ],
   "devDependencies": {
-    "@babel/eslint-parser": "^7.13.14",
+    "@babel/cli": "^7.13.16",
+    "@babel/core": "^7.14.2",
+    "@babel/eslint-parser": "^7.14.2",
+    "@babel/preset-env": "^7.14.2",
     "@openui5/ts-types": "^1.60.5",
+    "babel": "^6.23.0",
+    "copyfiles": "^2.4.1",
     "dotenv": "^9.0.2",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "npm-check-updates": "^11.5.11",
     "npm-run-all": "^4.1.5",
     "parseurl": "1.3.3",
     "prettier": "^2.3.0",
+    "regenerator-runtime": "^0.13.7",
+    "rimraf": "^3.0.2",
     "ui5-middleware-livereload": "^0.5.4",
     "ui5-middleware-livetranspile": "^0.3.1",
     "ui5-middleware-route-proxy": "1.0.9",
     "ui5-middleware-servestatic": "^0.3.4",
-    "ui5-task-nwabap-deployer": "^1.0.15",
-    "ui5-task-transpile": "^0.3.1"
+    "ui5-task-nwabap-deployer": "1.0.15"
   },
   "ui5": {
     "dependencies": [
@@ -34,7 +52,6 @@
       "ui5-middleware-route-proxy",
       "ui5-middleware-livetranspile",
       "ui5-middleware-servestatic",
-      "ui5-task-transpile",
       "ui5-task-nwabap-deployer"
     ]
   }

@@ -1,4 +1,5 @@
-specVersion: "1.0"
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+specVersion: "2.3"
 metadata:
   name: logoninfo
 type: application
@@ -11,15 +12,35 @@ builder:
       - "/test/**"
       - "/localService/**"
       - "**/.eslintrc"
+  bundles:
+    - bundleDefinition:
+        name: flp/plugins/logoninfo/Component-preload.js
+        defaultFileTypes:
+          - ".js"
+          - ".json"
+          - ".xml"
+          - ".html"
+          - ".properties"
+        sections:
+          - mode: raw
+            filters:
+              - flp/plugins/logoninfo/regenerator-runtime/runtime.js
+          - mode: preload
+            filters:
+              - flp/plugins/logoninfo/manifest.json
+              - flp/plugins/logoninfo/controller/**
+              - flp/plugins/logoninfo/Component.js
+              - flp/plugins/logoninfo/i18n/**
+              - flp/plugins/logoninfo/model/**
+              - flp/plugins/logoninfo/util/**
+              - flp/plugins/logoninfo/view/**
+              - flp/plugins/logoninfo/state/**
+            resolve: false
+            sort: true
+      bundleOptions:
+        optimize: true
+        usePredefineCalls: true
   customTasks:
-    - name: ui5-task-transpile
-      afterTask: replaceVersion
-      configuration:
-        transpileAsync: true
-        debug: false
-        excludePatterns:
-          - "lib/"
-          - "css/"
     - name: ui5-task-nwabap-deployer
       afterTask: generateCachebusterInfo
       configuration:

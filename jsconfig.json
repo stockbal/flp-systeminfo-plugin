@@ -1,7 +1,0 @@
-{
-    "include": [
-        "**/*.js",
-        "**/*.json",
-        "node_modules/@openui5/ts-types/types"
-    ]
-}

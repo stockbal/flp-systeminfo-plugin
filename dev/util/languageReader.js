@@ -1,4 +1,4 @@
-sap.ui.define(["./ajax", "./cookieHandler", "./xmlUtil"], (ajax, cookieHandler, xmlUtil) => {
+sap.ui.define(["./ajax", "./cookieHandler", "./nodeUtil"], (ajax, cookieHandler, nodeUtil) => {
     const ADT_DATA_PREVIEW_SERVICE = "/sap/bc/adt/datapreview/freestyle";
     const LANGUAGE_KEY = "KEY";
     const LANGUAGE_DESCRIPTION = "DESC";
@@ -10,14 +10,13 @@ sap.ui.define(["./ajax", "./cookieHandler", "./xmlUtil"], (ajax, cookieHandler, 
             oDocument = new DOMParser().parseFromString(oDocument, "text/xml");
         }
         const aLanguages = [];
-        const aColMetadata = oDocument.querySelectorAll("columns > metadata") || [];
-
+        const oColumnsMetadata = oDocument.querySelectorAll("columns > metadata") || [];
         // iteration over the column metadata of the query result
-        for (const oColMetadata of aColMetadata) {
+        Array.prototype.forEach.call(oColumnsMetadata, oColMetadata => {
             const sColName = oColMetadata.attributes["dataPreview:name"].value.toLowerCase();
             let iIndex = 0;
             // Retrieve the data entries of the columns
-            for (const oData of oColMetadata.parentNode.querySelectorAll("data")) {
+            Array.prototype.forEach.call(oColMetadata.parentNode.querySelectorAll("data"), oData => {
                 let oLanguageInfo;
                 if (aLanguages.length < iIndex + 1) {
                     oLanguageInfo = {};
@@ -28,12 +27,12 @@ sap.ui.define(["./ajax", "./cookieHandler", "./xmlUtil"], (ajax, cookieHandler, 
                     oLanguageInfo = aLanguages[iIndex];
                 }
                 if (!oLanguageInfo.hasOwnProperty(sColName)) {
-                    break;
+                    return;
                 }
-                oLanguageInfo[sColName] = xmlUtil.getNodeText(oData);
+                oLanguageInfo[sColName] = nodeUtil.getNodeText(oData);
                 iIndex++;
-            }
-        }
+            });
+        });
 
         return aLanguages;
     }

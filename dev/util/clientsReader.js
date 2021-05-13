@@ -1,4 +1,4 @@
-sap.ui.define(["./ajax", "./cookieHandler", "./xmlUtil"], (ajax, cookieHandler, xmlUtil) => {
+sap.ui.define(["./ajax", "./cookieHandler", "./nodeUtil"], (ajax, cookieHandler, nodeUtil) => {
     const ADT_CLIENT_SERVICE_URL = "/sap/bc/adt/system/clients";
 
     function extractClients(oDocument) {
@@ -13,18 +13,18 @@ sap.ui.define(["./ajax", "./cookieHandler", "./xmlUtil"], (ajax, cookieHandler, 
         }
         const aClients = [];
         if (oClientList) {
-            for (const oClientEntry of oClientList) {
-                const sClientId = xmlUtil.getChildNodeText(oClientEntry, "id");
+            Array.prototype.forEach.call(oClientList, oClientEntry => {
+                const sClientId = nodeUtil.getChildNodeText(oClientEntry, "id");
 
                 // the default 0 client is ignored
                 if (sClientId === "000") {
-                    continue;
+                    return;
                 }
                 aClients.push({
                     client: sClientId,
-                    description: xmlUtil.getChildNodeText(oClientEntry, "title")
+                    description: nodeUtil.getChildNodeText(oClientEntry, "title")
                 });
-            }
+            });
         }
         return aClients;
     }

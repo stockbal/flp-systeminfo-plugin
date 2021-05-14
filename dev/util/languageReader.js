@@ -6,7 +6,6 @@ const ADT_DATA_PREVIEW_SERVICE = "/sap/bc/adt/datapreview/freestyle";
 const COL_LANGUAGE_KEY = "KEY";
 const COL_LANGUAGE_DESCR = "DESC";
 const COL_LOGON_LANG_VALUES = "VALUE";
-const TECH_LANGUAGE_VALUE = "늑";
 const TECH_LANGUAGE_KEY = "1Q";
 
 function extractResultFromDataPreview(oDocument, aColumNames) {
@@ -63,6 +62,12 @@ export default {
             throw Error("No logon languages found!");
         }
         aLanguages = await this._getLanguageIsoTexts(aLogonLanguageKeys, sToken);
+        // overwrite the technical language description
+        for (const oLanguage of aLanguages) {
+            if (oLanguage.key === TECH_LANGUAGE_KEY) {
+                oLanguage.desc = "Technical Language";
+            }
+        }
         cookieHandler.setLanguages(aLanguages);
         return aLanguages;
     },

@@ -62,14 +62,15 @@ export default {
                 },
                 method: "POST",
                 data:
-                    `SELECT langu~laiso AS ${LANGUAGE_KEY}, \n` +
-                    `       langu_text~sptxt AS ${LANGUAGE_DESCRIPTION} \n` +
-                    `  FROM t002c AS installed_langu \n` +
-                    `    INNER JOIN t002 AS langu \n` +
-                    `      ON installed_langu~spras = langu~spras \n` +
-                    `    LEFT OUTER JOIN t002t AS langu_text \n` +
-                    `      ON  langu~spras = langu_text~sprsl \n` +
-                    `      AND langu_text~spras = langu~spras \n` +
+                    // CRLF is necessary because freestyle query handler split the string via CRLF
+                    `SELECT langu~laiso AS ${LANGUAGE_KEY}, \r\n` +
+                    `       langu_text~sptxt AS ${LANGUAGE_DESCRIPTION} \r\n` +
+                    `  FROM t002c AS installed_langu \r\n` +
+                    `    INNER JOIN t002 AS langu \r\n` +
+                    `      ON installed_langu~spras = langu~spras \r\n` +
+                    `    LEFT OUTER JOIN t002t AS langu_text \r\n` +
+                    `      ON  langu~spras = langu_text~sprsl \r\n` +
+                    `      AND langu_text~spras = langu~spras \r\n` +
                     `  ORDER BY langu~laiso`
             });
             aLanguages = extractLanguagesFromDocument(oQueryResult);

@@ -1,9 +1,11 @@
 # flp-systeminfo-plugin
 Fiori Launchpad Plugin for 
 - displaying ABAP system info
-- changing language from(to) German to(from) English
+- changing language
+  - via Dropdown of all installed languages in the system (works only if the SICF service /sap/bc/adt is active and user has authority to use it)
+  - from(to) German to(from) English
 - changing the client
-  - via Dropdown of all available clients in the system (works only if the SICF service /sap/bc/adt is active)
+  - via Dropdown of all available clients in the system (works only if the SICF service /sap/bc/adt is active and user has authority to use it)
   - or via direkt input via Popup input dialog (if above service is not active)
 
 ## Setup
@@ -32,7 +34,7 @@ SAPUI5_TEST_RESOURCES=<root path to unpacked saoui5 lib>/test-resources
 
 ## Testing
 ```
-$ npm run dev
+$ npm run start
 ```
 
 ## Deployment to ABAP System

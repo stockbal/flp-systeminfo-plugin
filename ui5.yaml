@@ -28,13 +28,11 @@ builder:
           - mode: preload
             filters:
               - flp/plugins/logoninfo/manifest.json
-              - flp/plugins/logoninfo/controller/**
               - flp/plugins/logoninfo/Component.js
               - flp/plugins/logoninfo/i18n/**
               - flp/plugins/logoninfo/model/**
-              - flp/plugins/logoninfo/util/**
+              - flp/plugins/logoninfo/util/**/**
               - flp/plugins/logoninfo/view/**
-              - flp/plugins/logoninfo/state/**
             resolve: false
             sort: true
       bundleOptions:

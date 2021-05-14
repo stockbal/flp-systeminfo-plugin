@@ -30,6 +30,7 @@
     "@babel/preset-env": "^7.14.2",
     "@openui5/ts-types": "^1.60.5",
     "babel": "^6.23.0",
+    "babel-preset-transform-ui5": "^7.0.3",
     "copyfiles": "^2.4.1",
     "dotenv": "^9.0.2",
     "eslint": "^7.26.0",

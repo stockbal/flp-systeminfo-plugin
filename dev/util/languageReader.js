@@ -3,16 +3,19 @@ import cookieHandler from "./cookieHandler";
 import nodeUtil from "./nodeUtil";
 
 const ADT_DATA_PREVIEW_SERVICE = "/sap/bc/adt/datapreview/freestyle";
-const LANGUAGE_KEY = "KEY";
-const LANGUAGE_DESCRIPTION = "DESC";
+const COL_LANGUAGE_KEY = "KEY";
+const COL_LANGUAGE_DESCR = "DESC";
+const COL_LOGON_LANG_VALUES = "VALUE";
+const TECH_LANGUAGE_VALUE = "늑";
+const TECH_LANGUAGE_KEY = "1Q";
 
-function extractLanguagesFromDocument(oDocument) {
+function extractResultFromDataPreview(oDocument, aColumNames) {
     // if the supplied object is not a DOM document it has to be created
     // via the dom parser
     if (!oDocument.querySelector) {
         oDocument = new DOMParser().parseFromString(oDocument, "text/xml");
     }
-    const aLanguages = [];
+    const aResult = [];
     const oColumnsMetadata = oDocument.querySelectorAll("columns > metadata") || [];
     // iteration over the column metadata of the query result
     Array.prototype.forEach.call(oColumnsMetadata, oColMetadata => {
@@ -20,24 +23,25 @@ function extractLanguagesFromDocument(oDocument) {
         let iIndex = 0;
         // Retrieve the data entries of the columns
         Array.prototype.forEach.call(oColMetadata.parentNode.querySelectorAll("data"), oData => {
-            let oLanguageInfo;
-            if (aLanguages.length < iIndex + 1) {
-                oLanguageInfo = {};
-                oLanguageInfo[LANGUAGE_KEY.toLowerCase()] = "";
-                oLanguageInfo[LANGUAGE_DESCRIPTION.toLowerCase()] = "";
-                aLanguages.push(oLanguageInfo);
+            let oResultLine;
+            if (aResult.length < iIndex + 1) {
+                oResultLine = {};
+                for (const sResulProperty of aColumNames) {
+                    oResultLine[sResulProperty.toLowerCase()] = "";
+                }
+                aResult.push(oResultLine);
             } else {
-                oLanguageInfo = aLanguages[iIndex];
+                oResultLine = aResult[iIndex];
             }
-            if (!oLanguageInfo.hasOwnProperty(sColName)) {
+            if (!oResultLine.hasOwnProperty(sColName)) {
                 return;
             }
-            oLanguageInfo[sColName] = nodeUtil.getNodeText(oData);
+            oResultLine[sColName] = nodeUtil.getNodeText(oData);
             iIndex++;
         });
     });
 
-    return aLanguages;
+    return aResult;
 }
 
 export default {
@@ -54,30 +58,68 @@ export default {
         if (!sToken) {
             throw Error("CSRF token could not be determined!");
         }
+        const aLogonLanguageKeys = await this._getActiveLogonLanguages(sToken);
+        if (!aLogonLanguageKeys || aLogonLanguageKeys.length === 0) {
+            throw Error("No logon languages found!");
+        }
+        aLanguages = await this._getLanguageIsoTexts(aLogonLanguageKeys, sToken);
+        cookieHandler.setLanguages(aLanguages);
+        return aLanguages;
+    },
+
+    async _getActiveLogonLanguages(sCSRFToken) {
+        const aLogonLanguages = await this._callDataPreviewService(
+            `SELECT value \r\n` +
+                `  FROM tcp0i \r\n` +
+                `  WHERE name = 'logon_languages' \r\n` +
+                `    AND active = @abap_true \r\n` +
+                `  ORDER BY timestmp DESCENDING`,
+            sCSRFToken,
+            [COL_LOGON_LANG_VALUES],
+            1
+        );
+        if (aLogonLanguages && aLogonLanguages.length === 1) {
+            return aLogonLanguages[0].value.split("");
+        }
+        return [];
+    },
+
+    async _getLanguageIsoTexts(aLanguageKeys, sCSRFToken) {
+        const sKeys = aLanguageKeys.map(sKey => `'${sKey}'`).join(", ");
+        return this._callDataPreviewService(
+            `SELECT lang~laiso AS key, \r\n` +
+                `       lang_text~sptxt AS desc \r\n` +
+                `  FROM t002 AS lang \r\n` +
+                `    LEFT OUTER JOIN t002t AS lang_text \r\n` +
+                `      ON  lang~spras = lang_text~sprsl \r\n` +
+                `      AND lang_text~spras = lang~spras \r\n` +
+                `  WHERE lang~spras IN ( ${sKeys} ) \r\n` +
+                `  ORDER BY lang~laiso`,
+            sCSRFToken,
+            [COL_LANGUAGE_KEY, COL_LANGUAGE_DESCR],
+            100
+        );
+    },
+
+    async _callDataPreviewService(sQuery, sCSRFToken, aColumnNames, iMaxRows) {
         try {
-            const { data: oQueryResult } = await ajax.send(`${ADT_DATA_PREVIEW_SERVICE}?rowNumber=100&dataAging=true`, {
+            const { data: oQueryResult } = await ajax.send(`${ADT_DATA_PREVIEW_SERVICE}?rowNumber=${iMaxRows}`, {
                 headers: {
-                    "X-CSRF-Token": sToken,
+                    "X-CSRF-Token": sCSRFToken,
                     Accept: "application/xml, application/vnd.sap.adt.datapreview.table.v1+xml"
                 },
                 method: "POST",
-                data:
-                    // CRLF is necessary because freestyle query handler split the string via CRLF
-                    `SELECT langu~laiso AS ${LANGUAGE_KEY}, \r\n` +
-                    `       langu_text~sptxt AS ${LANGUAGE_DESCRIPTION} \r\n` +
-                    `  FROM t002c AS installed_langu \r\n` +
-                    `    INNER JOIN t002 AS langu \r\n` +
-                    `      ON installed_langu~spras = langu~spras \r\n` +
-                    `    LEFT OUTER JOIN t002t AS langu_text \r\n` +
-                    `      ON  langu~spras = langu_text~sprsl \r\n` +
-                    `      AND langu_text~spras = langu~spras \r\n` +
-                    `  ORDER BY langu~laiso`
+                data: sQuery
             });
-            aLanguages = extractLanguagesFromDocument(oQueryResult);
-            cookieHandler.setLanguages(aLanguages);
-            return aLanguages;
-        } catch ({ status, statusText }) {
-            throw Error(`ADT service call (${ADT_DATA_PREVIEW_SERVICE}) failed.\nHTTP Code: ${status} (${statusText})`);
+            return extractResultFromDataPreview(oQueryResult, aColumnNames);
+        } catch (vError) {
+            if (vError.hasOwnProperty("status") && vError.hasOwnProperty("statusText")) {
+                throw Error(
+                    `ADT service call (${ADT_DATA_PREVIEW_SERVICE}) failed.\nHTTP Code: ${vError.status} (${vError.statusText})`
+                );
+            } else {
+                throw Error(`ADT service call (${ADT_DATA_PREVIEW_SERVICE}) failed.\nError: ${vError})`);
+            }
         }
     }
 };

@@ -47,8 +47,14 @@ export default {
             aClients = extractClients(oClientData);
             cookieHandler.setClients(aClients);
             return aClients;
-        } catch ({ status, statusText }) {
-            throw Error(`ADT service call (${ADT_CLIENT_SERVICE_URL}) failed.\nHTTP Code: ${status} (${statusText})`);
+        } catch (vError) {
+            if (vError.hasOwnProperty("status") && vError.hasOwnProperty("statusText")) {
+                throw Error(
+                    `ADT service call (${ADT_CLIENT_SERVICE_URL}) failed.\nHTTP Code: ${vError.status} (${vError.statusText})`
+                );
+            } else {
+                throw Error(`ADT service call (${ADT_CLIENT_SERVICE_URL}) failed.\nError: ${vError})`);
+            }
         }
     }
 };

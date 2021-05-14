@@ -1,6 +1,6 @@
 {
   "name": "flp-systeminfo-plugin",
-  "version": "0.0.2",
+  "version": "0.5.0",
   "description": "Fiori Launchpad Plugin to display Logon information and change client/language",
   "private": true,
   "scripts": {

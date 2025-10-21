@@ -1,8 +1,4 @@
-// the regenerator runtime is required as the final code needs it for the asynchronous calls
-if (!window.regeneratorRuntime) {
-    sap.ui.requireSync("flp/plugins/logoninfo/regenerator-runtime/runtime");
-}
-import $ from "jQuery.sap.global";
+import ObjectPath from "sap/base/util/ObjectPath";
 import Component from "sap/ui/core/Component";
 import ClientSwitcher from "./util/ui/ClientSwitcher";
 import LanguageSwitcher from "./util/ui/LanguageSwitcher";
@@ -76,7 +72,7 @@ export default class PluginComponent extends Component {
         // retrieve client from cookie
         const sClient = this._oShellContainer.getLogonSystem().getClient();
         // retrieve user name from ushell services
-        const sUser = sap.ushell.Container.getUser().getId();
+        const sUser = this._oShellContainer.getUser().getId();
 
         if (sSystem && sSystem !== sLogonSystem) {
             sSystem = sLogonSystem + " / " + sSystem;
@@ -101,31 +97,30 @@ export default class PluginComponent extends Component {
      *      rejected with an error message.
      */
     _getRenderer() {
-        const oDeferred = new $.Deferred();
-
-        this._oShellContainer = $.sap.getObject("sap.ushell.Container");
-        if (!this._oShellContainer) {
-            oDeferred.reject(
-                "Illegal state: shell container not available; this component must be executed in a unified shell runtime context."
-            );
-        } else {
-            let oRenderer = this._oShellContainer.getRenderer();
-            if (oRenderer) {
-                oDeferred.resolve(oRenderer);
+        this._oShellContainer = ObjectPath.get("sap.ushell.Container");
+        return new Promise((resolve, reject) => {
+            if (!this._oShellContainer) {
+                reject(
+                    "Illegal state: shell container not available; this component must be executed in a unified shell runtime context."
+                );
             } else {
-                // renderer not initialized yet, listen to rendererCreated event
-                this._oShellContainer.attachRendererCreatedEvent(oEvent => {
-                    oRenderer = oEvent.getParameter("renderer");
-                    if (oRenderer) {
-                        oDeferred.resolve(oRenderer);
-                    } else {
-                        oDeferred.reject(
-                            "Illegal state: shell renderer not available after recieving 'rendererLoaded' event."
-                        );
-                    }
-                });
+                let oRenderer = this._oShellContainer.getRenderer();
+                if (oRenderer) {
+                    resolve(oRenderer);
+                } else {
+                    // renderer not initialized yet, listen to rendererCreated event
+                    this._oShellContainer.attachRendererCreatedEvent(oEvent => {
+                        oRenderer = oEvent.getParameter("renderer");
+                        if (oRenderer) {
+                            resolve(oRenderer);
+                        } else {
+                            reject(
+                                "Illegal state: shell renderer not available after recieving 'rendererLoaded' event."
+                            );
+                        }
+                    });
+                }
             }
-        }
-        return oDeferred.promise();
+        });
     }
 }

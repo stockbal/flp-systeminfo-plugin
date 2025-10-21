@@ -23,7 +23,8 @@ export default class LanguageSwitcher extends Object {
      * @public
      */
     async switchLanguage(oEvent) {
-        const oButton = oEvent.getParameter("targetRef");
+        const source = oEvent.getSource();
+        const oButton = source.isA("@ui5/webcomponents-fiori.ShellBarItem") ? oEvent.getParameter("targetRef") : source;
         await this._init();
         const oMenu = new ActionSheet({
             showCancelButton: false,

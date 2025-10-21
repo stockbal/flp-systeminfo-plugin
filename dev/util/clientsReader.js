@@ -35,7 +35,7 @@ function extractClients(oDocument) {
 export default {
     /**
      * Retrieves a list of clients from the current system
-     * @returns {Array} array of client objects
+     * @returns {Promise<Array>} array of client objects
      */
     async getSystemClients() {
         let aClients = cookieHandler.getClients();

@@ -25,7 +25,8 @@ export default class ClientSwitcher extends Object {
      * @public
      */
     async switchClient(oEvent) {
-        const oButton = oEvent.getParameter("targetRef");
+        const source = oEvent.getSource();
+        const oButton = source.isA("@ui5/webcomponents-fiori.ShellBarItem") ? oEvent.getParameter("targetRef") : source;
         await this._init();
         if (this._aClients && this._aClients.length > 0) {
             this._switchClientByActionSheet(oButton);

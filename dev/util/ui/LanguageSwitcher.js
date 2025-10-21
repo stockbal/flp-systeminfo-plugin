@@ -23,7 +23,7 @@ export default class LanguageSwitcher extends Object {
      * @public
      */
     async switchLanguage(oEvent) {
-        const oButton = oEvent.getSource();
+        const oButton = oEvent.getParameter("targetRef");
         await this._init();
         const oMenu = new ActionSheet({
             showCancelButton: false,

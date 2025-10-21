@@ -25,7 +25,7 @@ export default class ClientSwitcher extends Object {
      * @public
      */
     async switchClient(oEvent) {
-        const oButton = oEvent.getSource();
+        const oButton = oEvent.getParameter("targetRef");
         await this._init();
         if (this._aClients && this._aClients.length > 0) {
             this._switchClientByActionSheet(oButton);
